@@ -1,103 +1,125 @@
-import Image from "next/image";
+"use client";
+
+import React from "react";
+import { usePdfContext, PdfProvider } from "../context/PdfContext";
+import { comparePdfText } from "../utils/pdfUtils";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <PdfProvider>
+      <PdfComparison />
+    </PdfProvider>
+  );
+}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+function PdfComparison() {
+  const {
+    file1,
+    file2,
+    comparisonResult,
+    setFile1,
+    setFile2,
+    handleFileChange,
+    handleCompare,
+    handleClear,
+  } = usePdfContext();
+
+  return (
+    <div className="flex flex-col min-h-screen p-8 gap-8">
+      {/* Results Section */}
+      <section className="w-full bg-gray-100 p-4 rounded shadow max-h-96 overflow-y-auto">
+        <h2 className="text-lg font-bold">Comparison Results</h2>
+        {comparisonResult ? (
+          <div>
+            <p
+              className={
+                parseFloat(comparisonResult.overall) === 1
+                  ? "text-blue-500"
+                  : parseFloat(comparisonResult.overall) >= 0.75
+                    ? "text-green-500"
+                    : parseFloat(comparisonResult.overall) >= 0.5
+                      ? "text-yellow-500"
+                      : "text-red-500"
+              }
+            >
+              <span className="font-semibold">Overall Similarity:</span> {comparisonResult.overall} (
+              <span className="font-bold">
+                {(parseFloat(comparisonResult.overall) * 100).toFixed(0)}%
+              </span>
+              )
+            </p>
+            <ul>
+              {comparisonResult.pageResults.map((page, index) => {
+                const percentage = (page.similarity * 100).toFixed(0); // Convert to percentage and truncate decimals
+                const color =
+                  page.similarity === 1
+                    ? "text-blue-500 font-bold"
+                    : page.similarity >= 0.75
+                      ? "text-green-500 font-bold"
+                      : page.similarity >= 0.5
+                        ? "text-yellow-500 font-bold"
+                        : "text-red-500 font-bold"; // Color coding based on similarity
+
+                return (
+                  <li key={index}>
+                    <span className="font-semibold">Page {index + 1}:</span>{" "}
+                    <span className="font-medium">{page.similarity.toFixed(2)}</span> (
+                    <span className={color}>{percentage}%</span>)
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : (
+          <p>No results yet. Upload files and click compare.</p>
+        )}
+      </section>
+
+      {/* File Upload Section */}
+      <section className="flex-1 flex flex-col sm:flex-row gap-4 justify-center items-stretch">
+        <div className="w-full sm:w-1/2 border-dashed border-2 border-gray-300 p-4 text-center cursor-pointer flex items-stretch hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-transform duration-200">
+          <label className="cursor-pointer w-full h-full flex items-center justify-center">
+            {file1 ? <p>{file1.name}</p> : <p>Click to upload PDF 1</p>}
+            <input
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) => handleFileChange(e, setFile1)}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </label>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <div className="w-full sm:w-1/2 border-dashed border-2 border-gray-300 p-4 text-center cursor-pointer flex items-stretch hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-transform duration-200">
+          <label className="cursor-pointer w-full h-full flex items-center justify-center">
+            {file2 ? <p>{file2.name}</p> : <p>Click to upload PDF 2</p>}
+            <input
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) => handleFileChange(e, setFile2)}
+            />
+          </label>
+        </div>
+      </section>
+
+      {/* Button Section */}
+      <section className="flex justify-end items-center w-full gap-4">
+        <button
+          className={`bg-red-500 text-white px-4 py-2 rounded ${file1 || file2 ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+            }`}
+          onClick={handleClear}
+          disabled={!file1 && !file2}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Clear
+        </button>
+        <button
+          className={`bg-blue-500 text-white px-4 py-2 rounded ${file1 && file2 ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+            }`}
+          onClick={() => handleCompare(comparePdfText)}
+          disabled={!file1 || !file2}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Compare
+        </button>
+      </section>
     </div>
   );
 }

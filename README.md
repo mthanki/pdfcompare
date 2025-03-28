@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDF Compare
 
-## Getting Started
+## About
+PDF Compare is a web app to compare two PDF files. It calculates similarity using the **Jaccard similarity index**, which measures the overlap between sets of words in the documents. The app provides an overall similarity score and page-by-page results, helping users identify differences. Built with React, Next.js, and `pdfjs-dist`.
 
-First, run the development server:
+## How to Run
+1. Clone the repository and navigate to the project folder:
+   ```bash
+   git clone <repository-url>
+   cd pdfcompare
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the app:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## How It Works
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Overview
+The app extracts text from PDFs using `pdfjs-dist` and compares them using the **Jaccard similarity index**. Results include:
+- **Overall Similarity**: A single score for the entire documents.
+- **Page-by-Page Results**: Individual scores for each page.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Key Function: `calculateSimilarity`
+The `calculateSimilarity` function is the core of the comparison logic. It calculates the Jaccard similarity between two sets of words.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### Why Use Sets?
+Sets are used because they automatically handle duplicate words, ensuring that each word is counted only once. This is crucial for calculating the Jaccard similarity, which is based on unique elements.
 
-## Learn More
+1. **Unique Words**:
+   - Example: `"Hello world world"` becomes `Set { "Hello", "world" }`.
+   - This ensures that repeated words do not inflate the similarity score.
 
-To learn more about Next.js, take a look at the following resources:
+2. **Efficient Operations**:
+   - Sets provide efficient methods for finding intersections and unions, which are key to the Jaccard formula.
+   - Example:
+     - `set1.filter((x) => set2.has(x))` efficiently finds common elements between two sets.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### Explanation:
+1. **Convert Text to Sets**:
+   - `text1.split(/\s+/)` splits the text into words using whitespace as the delimiter.
+   - `new Set()` creates a set of unique words from the text.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Find Intersection**:
+   - The intersection contains words that are present in both sets.
+   - Example:
+     - `Set1 = { "Hello", "world" }`
+     - `Set2 = { "Hello", "universe" }`
+     - Intersection = `{ "Hello" }`.
 
-## Deploy on Vercel
+3. **Find Union**:
+   - The union contains all unique words from both sets.
+   - Example:
+     - `Set1 = { "Hello", "world" }`
+     - `Set2 = { "Hello", "universe" }`
+     - Union = `{ "Hello", "world", "universe" }`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Calculate Jaccard Similarity**:
+   - `intersection.size / union.size` gives the similarity score.
+   - Example:
+     - Intersection size = 1
+     - Union size = 3
+     - Similarity = `1 / 3 = 0.33`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. **Handle Edge Cases**:
+   - If both sets are empty, the function returns `0` to avoid division by zero.
+
+### Why This Approach?
+- **Jaccard Similarity**: Measures the overlap between sets of words, making it robust against minor differences like word order.
+- **Page Numbers**: Helps locate differences in large documents.
+
+## Conclusion
+PDF Compare is a simple, modular tool for comparing PDF documents with detailed results.
