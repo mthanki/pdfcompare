@@ -76,3 +76,8 @@ Sets are used because they automatically handle duplicate words, ensuring that e
 
 ## Conclusion
 PDF Compare is a simple, modular tool for comparing PDF documents with detailed results.
+
+### Future Enhancements
+The inclusion of page numbers not only helps locate differences in large documents but also opens up possibilities for future improvements:
+- **Page Limitation**: Allow users to limit the comparison to a specific number of pages (e.g., the first 10 pages) to handle large documents efficiently.
+- **Specific Page Comparison**: Enable users to compare specific pages (e.g., page 5 of document A with page 7 of document B) for more targeted analysis.
